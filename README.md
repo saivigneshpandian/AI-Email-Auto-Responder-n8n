@@ -48,7 +48,7 @@ The system follows a **Retrieval-Augmented Generation (RAG)** approach:
 ---
 ## 🏗 Workflow Diagram
 
-![Workflow Architecture](workflow-architecture.png)
+![Workflow Architecture]()
 
 ---
 ## 🛠 Tech Stack
