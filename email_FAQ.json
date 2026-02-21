@@ -1,0 +1,274 @@
+{
+  "name": "email FAQ",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "filters": {}
+      },
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -608,
+        -48
+      ],
+      "id": "f045e7d0-7616-405b-a28e-d52cb4c205d3",
+      "name": "Gmail Trigger",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "LlNpgVdYVeDLr2DV",
+          "name": "use this"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "messageId": "={{ $json.id }}"
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        -400,
+        -48
+      ],
+      "id": "d9306cc1-e351-4ada-b6d2-d29d76b8ed44",
+      "name": "Get a message",
+      "webhookId": "a9ad204c-3b95-4cfd-bbc3-e44caa35ed3c",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "LlNpgVdYVeDLr2DV",
+          "name": "use this"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=to:{{ $json.To }}\nsubject:{{ $json.Subject }}\nbody: {{ $json.snippet }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=you are support team email assitant , your task it to reply the received email .\n\nuser question :{{ $json.snippet }}\n\nyour role:\n1.  Maintain a professional and conversational human-like tone.  \n\n2.the user will ask question related to our company ,you will fetch thee data from the google drive (data) and you will be reply to the user.\n\n3. before sending the mail check once whether it replied to user question.\n\n\n4.Provide the final output strictly in the following JSON format:\n\n{\n  \"Subject\": \"1–3 word summary of the reply\",\n  \"response\": \"Detailed response to the user's FAQ ,dont add subject here\"\n}\n5.dont mention that your an ai\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        -192,
+        -48
+      ],
+      "id": "c2570500-49e5-4557-aa1b-b6fd5ede5246",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -224,
+        176
+      ],
+      "id": "c2b2f0a5-c1fc-4516-a391-b3e51c1dfdd8",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "MYxaE8Klll7pptuV",
+          "name": "use gemini"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Share file in Google Drive",
+        "operation": "copy",
+        "fileId": {
+          "__rl": true,
+          "value": "1HJPTYYupfu4upMRyRA-YnkLB4qAF0F0r",
+          "mode": "list",
+          "cachedResultName": "Telegram FAQ.pdf",
+          "cachedResultUrl": "https://drive.google.com/file/d/1HJPTYYupfu4upMRyRA-YnkLB4qAF0F0r/view?usp=drivesdk"
+        },
+        "name": "Telegram FAQ",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDriveTool",
+      "typeVersion": 3,
+      "position": [
+        -80,
+        176
+      ],
+      "id": "a3defc79-aa74-4732-9ab8-05b1135805c0",
+      "name": "data",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "ILtyyQemyRkGug5z",
+          "name": "use this"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"Subject\": \"Subject here\",\n  \"response\": \"response here\"\n}\n"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        128,
+        160
+      ],
+      "id": "1f033b72-23ee-4258-a41f-61e152114248",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "resource": "draft",
+        "subject": "={{ $json.output.Subject }}",
+        "message": "={{ $json.output.response }}",
+        "options": {
+          "threadId": "={{ $('Gmail Trigger').item.json.id }}",
+          "sendTo": "={{ $('Gmail Trigger').item.json.From }}"
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        160,
+        -48
+      ],
+      "id": "24ddf62f-4a09-4190-a922-140826be14bc",
+      "name": "Create a draft",
+      "webhookId": "d7255b63-4b39-4588-99e3-44e23832b78e",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "LlNpgVdYVeDLr2DV",
+          "name": "use this"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "thread",
+        "operation": "addLabels",
+        "threadId": "={{ $json.message.threadId }}",
+        "labelIds": [
+          "Label_427331633031211085"
+        ]
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        368,
+        -48
+      ],
+      "id": "0490342b-6ea6-43e9-a950-d6eee71bb110",
+      "name": "Add label to thread",
+      "webhookId": "2780a711-1eaa-4fa2-b5fd-bd4d3efdfbcc",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "LlNpgVdYVeDLr2DV",
+          "name": "use this"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Gmail Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get a message": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "data": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Create a draft",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create a draft": {
+      "main": [
+        [
+          {
+            "node": "Add label to thread",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "11ca594d-8e6f-49bd-aaad-0bf8d8fcee92",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "cf536de71349f522d5c6970e9df944a3ea69ea5a5c0432d808c0ed67783306c4"
+  },
+  "id": "03pTYdxfPKqNPU1h",
+  "tags": []
+}
