@@ -64,6 +64,7 @@ The system follows a **Retrieval-Augmented Generation (RAG)** approach:
 
 ## 📂 Project Structure
 
+
 ai-faq-email-agent-n8n/
 │
 ├── workflow.json                  # Exported n8n workflow
